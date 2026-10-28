@@ -1,6 +1,6 @@
 (() => {
   const saveButton = document.getElementById('saveReportDrive');
-  const DEFAULT_DRIVE_URL = 'https://script.google.com/macros/s/AKfycby0D5sphuxMTUVH3WTLt6-jbiTMUwTUpsJAZhODWdz09fdTg7i0ctqP3MojYRr8zgTD/exec';
+  const DEFAULT_DRIVE_URL = 'https://script.google.com/a/macros/aliexperu.com.pe/s/AKfycby0D5sphuxMTUVH3WTLt6-jbiTMUwTUpsJAZhODWdz09fdTg7i0ctqP3MojYRr8zgTD/exec';
 
   const getConfig = () => ({
     url: localStorage.getItem('inspecciones_drive_url_v2_repo') || DEFAULT_DRIVE_URL,
