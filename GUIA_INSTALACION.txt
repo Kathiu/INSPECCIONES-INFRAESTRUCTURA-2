@@ -1,0 +1,28 @@
+INSPECCIONES INFRAESTRUCTURA 2 — REPOSITORIO INDEPENDIENTE
+
+GitHub: https://github.com/Kathiu/INSPECCIONES-INFRAESTRUCTURA-2
+Aplicación: https://kathiu.github.io/INSPECCIONES-INFRAESTRUCTURA-2/
+Code.gs: https://github.com/Kathiu/INSPECCIONES-INFRAESTRUCTURA-2/blob/main/Code.gs
+
+APPS SCRIPT
+El backend actual está publicado en la URL configurada en app.js y report-drive.js. Comprueba que la URL responda:
+{"ok":true,"service":"INSPECCIONES_INFRAESTRUCTURA_2","version":"1.0"}
+
+IMPORTANTE: esta nueva app tiene almacenamiento local propio. No borra ni transfiere automáticamente los registros de la app anterior. Conserva la aplicación anterior mientras revisas las 9 inspecciones que ya tenías.
+
+PUBLICAR GITHUB PAGES
+1. Entra en Settings del repositorio.
+2. Abre Pages.
+3. En Build and deployment, elige Deploy from a branch.
+4. Selecciona la rama main y la carpeta /(root), y pulsa Save.
+5. Espera a que GitHub Pages publique la página. URL: https://kathiu.github.io/INSPECCIONES-INFRAESTRUCTURA-2/
+
+PRUEBA
+1. Abre la aplicación desde el enlace de arriba.
+2. Comprueba que Drive aparece conectado.
+3. Crea una inspección de prueba y espera a que termine la sincronización.
+4. En Apps Script > Ejecuciones, comprueba que se registre doPost. En Drive, busca la carpeta INSPECCIONES_INFRAESTRUCTURA_2.
+5. No uses la aplicación para trabajo real hasta confirmar que una inspección y su fotografía aparecen en Drive.
+
+SI LA SINCRONIZACIÓN FALLA
+La URL de Apps Script debe ser la de la implementación web del proyecto Inspecciones Infraestructura 2, con acceso para Cualquiera y ejecutada como la cuenta de trabajo. En Apps Script > Ejecuciones, abre el último doPost para leer el error.
