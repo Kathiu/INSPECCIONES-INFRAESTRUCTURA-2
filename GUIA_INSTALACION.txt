@@ -1,28 +1,45 @@
 INSPECCIONES INFRAESTRUCTURA 2 — REPOSITORIO INDEPENDIENTE
 
-GitHub: https://github.com/Kathiu/INSPECCIONES-INFRAESTRUCTURA-2
-Aplicación: https://kathiu.github.io/INSPECCIONES-INFRAESTRUCTURA-2/
-Code.gs: https://github.com/Kathiu/INSPECCIONES-INFRAESTRUCTURA-2/blob/main/Code.gs
+Repositorio GitHub:
+https://github.com/Kathiu/INSPECCIONES-INFRAESTRUCTURA-2
 
-APPS SCRIPT
-El backend actual está publicado en la URL configurada en app.js y report-drive.js. Comprueba que la URL responda:
+Aplicación GitHub Pages:
+https://kathiu.github.io/INSPECCIONES-INFRAESTRUCTURA-2/
+
+Código de Apps Script:
+https://github.com/Kathiu/INSPECCIONES-INFRAESTRUCTURA-2/blob/main/Code.gs
+
+CUENTA DE DRIVE
+kcorrea@aliexperu.com.pe
+
+PUBLICAR LA PÁGINA
+1. Abre el repositorio en GitHub.
+2. Entra en Settings > Pages.
+3. En Build and deployment, selecciona Deploy from a branch.
+4. En Branch, elige main y /(root).
+5. Pulsa Save y espera a que GitHub publique la página.
+6. Abre https://kathiu.github.io/INSPECCIONES-INFRAESTRUCTURA-2/
+
+SINCRONIZACIÓN
+La aplicación está configurada con la URL de Apps Script que ya comprobaste que responde con:
 {"ok":true,"service":"INSPECCIONES_INFRAESTRUCTURA_2","version":"1.0"}
 
-IMPORTANTE: esta nueva app tiene almacenamiento local propio. No borra ni transfiere automáticamente los registros de la app anterior. Conserva la aplicación anterior mientras revisas las 9 inspecciones que ya tenías.
+La interfaz envía cada inspección en un campo payload a doPost. La app espera a que el endpoint de verificación confirme que el archivo JSON se encuentra en Drive antes de marcarla como SINCRONIZADO.
 
-PUBLICAR GITHUB PAGES
-1. Entra en Settings del repositorio.
-2. Abre Pages.
-3. En Build and deployment, elige Deploy from a branch.
-4. Selecciona la rama main y la carpeta /(root), y pulsa Save.
-5. Espera a que GitHub Pages publique la página. URL: https://kathiu.github.io/INSPECCIONES-INFRAESTRUCTURA-2/
+PRUEBA OBLIGATORIA
+1. Abre la aplicación publicada.
+2. Crea una inspección de prueba con un área y punto.
+3. Pulsa Guardar inspección y espera el resultado.
+4. En Apps Script > Ejecuciones, revisa si aparece una ejecución doPost.
+5. En Google Drive de kcorrea@aliexperu.com.pe, busca la carpeta INSPECCIONES_INFRAESTRUCTURA_2 y confirma que se guardó el registro.
+6. Si adjuntaste una foto, verifica también que esté en Drive.
+7. No uses la app para trabajo real hasta confirmar que se sincronizó un registro y su fotografía.
 
-PRUEBA
-1. Abre la aplicación desde el enlace de arriba.
-2. Comprueba que Drive aparece conectado.
-3. Crea una inspección de prueba y espera a que termine la sincronización.
-4. En Apps Script > Ejecuciones, comprueba que se registre doPost. En Drive, busca la carpeta INSPECCIONES_INFRAESTRUCTURA_2.
-5. No uses la aplicación para trabajo real hasta confirmar que una inspección y su fotografía aparecen en Drive.
+SI QUEDA PENDIENTE
+- En Apps Script > Ejecuciones, abre la ejecución doPost más reciente.
+- Si no aparece doPost, revisa que GitHub Pages esté publicando la rama main desde /(root) y que la app abra la dirección correcta.
+- Si aparece un error, corrige ese error antes de volver a probar.
+- No borres los datos locales de la app ni desinstales la app anterior.
 
-SI LA SINCRONIZACIÓN FALLA
-La URL de Apps Script debe ser la de la implementación web del proyecto Inspecciones Infraestructura 2, con acceso para Cualquiera y ejecutada como la cuenta de trabajo. En Apps Script > Ejecuciones, abre el último doPost para leer el error.
+PROTECCIÓN DE DATOS
+Esta aplicación tiene almacenamiento local propio; no transfiere automáticamente los registros de la app anterior. Conserva la aplicación anterior hasta verificar que sus 9 inspecciones y fotografías están a salvo.
