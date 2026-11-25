@@ -1,11 +1,12 @@
 /************************************************************
- * INSPECCIONES DE INFRAESTRUCTURA
+ * INSPECCIONES INFRAESTRUCTURA 2
  * Backend para Google Apps Script
+ * Servicio: INSPECCIONES_INFRAESTRUCTURA_2
  * Version: 2.1
  ************************************************************/
 
-const ROOT_FOLDER_NAME = 'INSPECCIONES_INFRAESTRUCTURA';
-const REPORTS_FOLDER_NAME = 'REPORTES_MENSUALES';
+const ROOT_FOLDER_NAME = 'INSPECCIONES_INFRAESTRUCTURA_2';
+const REPORTS_FOLDER_NAME = 'REPORTES_MENSUALES_2';
 const MAX_PHOTOS_PER_INSPECTION = 12;
 
 /************************************************************
@@ -113,7 +114,7 @@ function doGet(e) {
   // Comprobación general del servicio.
   return json_({
     ok: true,
-    service: 'INSPECCIONES_INFRAESTRUCTURA',
+    service: 'INSPECCIONES_INFRAESTRUCTURA_2',
     version: '2.1'
   });
 }
