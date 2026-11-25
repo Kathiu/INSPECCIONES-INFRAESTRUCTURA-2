@@ -44,3 +44,11 @@ SI QUEDA PENDIENTE
 
 PROTECCIÓN DE DATOS
 Esta aplicación tiene almacenamiento local propio; no transfiere automáticamente los registros de la app anterior. Conserva la aplicación anterior hasta verificar que sus 9 inspecciones y fotografías están a salvo.
+
+
+FORMATO DEL REPORTE PDF
+- El encabezado de cada área se muestra en azul marino.
+- Cada punto de inspección se identifica con una banda azul acero.
+- Las fotografías se muestran en bloques de máximo 4 (2 columnas x 2 filas). Si hay más, continúan en un bloque adicional sin omitirlas.
+- La aplicación comprime las fotografías al capturarlas (hasta 1200 px, JPEG calidad 65%) para reducir el peso manteniendo una resolución adecuada para inspección visual.
+- Para guardar el PDF sin conexión, el navegador abrirá la ventana de impresión: seleccionar «Guardar como PDF».
