@@ -6,6 +6,7 @@
  ************************************************************/
 
 const ROOT_FOLDER_NAME = 'INSPECCIONES_INFRAESTRUCTURA_2';
+const INSPECTIONS_FOLDER_NAME = 'INSPECCIONES_DIARIAS';
 const REPORTS_FOLDER_NAME = 'REPORTES_MENSUALES_2';
 const MAX_PHOTOS_PER_INSPECTION = 12;
 
@@ -108,6 +109,28 @@ function doGet(e) {
         error: String(err && err.message ? err.message : err),
         id: String(p.id || '')
       }, p.prefix);
+    }
+  }
+
+  // Verificar que el PDF mensual realmente exista en Drive.
+  if (p.action === 'checkReport') {
+    try {
+      const year = safe_(p.anio || new Date().getFullYear());
+      const month = safe_(p.mes || 'SIN_MES');
+      const base = safe_(p.nombre || ('Reporte_' + year + '_' + month));
+      const root = getOrCreateFolder_(ROOT_FOLDER_NAME);
+      const reports = getOrCreateFolder_(REPORTS_FOLDER_NAME, root);
+      const yearFolder = getOrCreateFolder_(year, reports);
+      const monthFolder = getOrCreateFolder_(month, yearFolder);
+      const files = monthFolder.getFilesByName(base + '.pdf');
+      let result = { ok: false, nombre: base };
+      if (files.hasNext()) {
+        const file = files.next();
+        result = { ok: true, nombre: base, url: file.getUrl(), id: file.getId() };
+      }
+      return callbackOrJson_(result, p.prefix);
+    } catch (err) {
+      return callbackOrJson_({ ok: false, error: String(err && err.message ? err.message : err) }, p.prefix);
     }
   }
 
@@ -229,6 +252,7 @@ function syncInspection_(data) {
 
   try {
     const root = getOrCreateFolder_(ROOT_FOLDER_NAME);
+    const inspectionsRoot = getOrCreateFolder_(INSPECTIONS_FOLDER_NAME, root);
     const date = new Date(data.fecha || new Date());
 
     if (isNaN(date.getTime())) {
@@ -250,8 +274,8 @@ function syncInspection_(data) {
     const zone = safe_(data.zona || 'SIN_ZONA');
     const point = safe_(data.punto || 'SIN_PUNTO');
 
-    // Estructura: raíz / año / mes / día / inspección.
-    const yearFolder = getOrCreateFolder_(year, root);
+    // Estructura: raíz / INSPECCIONES_DIARIAS / año / mes / día / inspección.
+    const yearFolder = getOrCreateFolder_(year, inspectionsRoot);
     const monthFolder = getOrCreateFolder_(month, yearFolder);
     const dayFolder = getOrCreateFolder_(day, monthFolder);
 
@@ -357,9 +381,11 @@ function syncInspection_(data) {
       }
     });
 
-    if (photos.length > 0 && photoFiles.length === 0) {
+    if (photoErrors.length > 0) {
       throw new Error(
-        'No se pudo guardar ninguna fotografía: ' +
+        'No se completó el guardado de todas las fotografías. ' +
+        'Se guardaron ' + photoFiles.length + ' de ' + photos.length +
+        '. Vuelva a sincronizar para reintentar. Detalle: ' +
         JSON.stringify(photoErrors)
       );
     }
@@ -690,19 +716,24 @@ function reportCss_() {
 
 function collectMonthInspections_(year, month) {
   const root = getOrCreateFolder_(ROOT_FOLDER_NAME);
-  const yearFolders = root.getFoldersByName(String(year));
-
-  if (!yearFolders.hasNext()) return [];
-
-  const monthFolders = yearFolders.next().getFoldersByName(
-    String(month)
-  );
-
-  if (!monthFolders.hasNext()) return [];
-
   const rows = [];
 
-  collectInspectionFiles_(monthFolders.next(), rows);
+  // Estructura nueva: raíz / INSPECCIONES_DIARIAS / año / mes.
+  const dailyFolders = root.getFoldersByName(INSPECTIONS_FOLDER_NAME);
+  if (dailyFolders.hasNext()) {
+    const dailyYearFolders = dailyFolders.next().getFoldersByName(String(year));
+    if (dailyYearFolders.hasNext()) {
+      const dailyMonthFolders = dailyYearFolders.next().getFoldersByName(String(month));
+      if (dailyMonthFolders.hasNext()) collectInspectionFiles_(dailyMonthFolders.next(), rows);
+    }
+  }
+
+  // Compatibilidad con inspecciones anteriores guardadas directamente en raíz / año / mes.
+  const legacyYearFolders = root.getFoldersByName(String(year));
+  if (legacyYearFolders.hasNext()) {
+    const legacyMonthFolders = legacyYearFolders.next().getFoldersByName(String(month));
+    if (legacyMonthFolders.hasNext()) collectInspectionFiles_(legacyMonthFolders.next(), rows);
+  }
 
   return rows;
 }
