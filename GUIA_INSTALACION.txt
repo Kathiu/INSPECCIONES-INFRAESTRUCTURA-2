@@ -32,8 +32,9 @@ PRUEBA OBLIGATORIA
 3. Pulsa Guardar inspección y espera el resultado.
 4. En Apps Script > Ejecuciones, revisa si aparece una ejecución doPost.
 5. En Google Drive de kcorrea@aliexperu.com.pe, busca la carpeta INSPECCIONES_INFRAESTRUCTURA_2 y confirma que se guardó el registro.
-6. Si adjuntaste una foto, verifica también que esté en Drive.
-7. No uses la app para trabajo real hasta confirmar que se sincronizó un registro y su fotografía.
+6. Si adjuntaste una foto, verifica también que esté en `INSPECCIONES_INFRAESTRUCTURA_2/INSPECCIONES_DIARIAS/año/mes/día/inspección`.
+7. Verifica que el reporte PDF se guarde en `INSPECCIONES_INFRAESTRUCTURA_2/REPORTES_MENSUALES_2/año/mes`.
+8. No uses la app para trabajo real hasta confirmar un registro, sus fotografías y un reporte PDF.
 
 SI QUEDA PENDIENTE
 - En Apps Script > Ejecuciones, abre la ejecución doPost más reciente.
