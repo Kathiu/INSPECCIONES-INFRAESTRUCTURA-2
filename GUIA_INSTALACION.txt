@@ -21,8 +21,8 @@ PUBLICAR LA PÁGINA
 6. Abre https://kathiu.github.io/INSPECCIONES-INFRAESTRUCTURA-2/
 
 SINCRONIZACIÓN
-La aplicación está configurada con la URL de Apps Script que ya comprobaste que responde con:
-{"ok":true,"service":"INSPECCIONES_INFRAESTRUCTURA_2","version":"1.0"}
+La aplicación está configurada con la URL de Apps Script del proyecto INSPECCIONES_INFRAESTRUCTURA_2. El backend Code.gs del repositorio está identificado como versión 2.1 y debe publicarse como una nueva implementación de Apps Script. La respuesta esperada al abrir /exec es:
+{"ok":true,"service":"INSPECCIONES_INFRAESTRUCTURA_2","version":"2.1"}
 
 La interfaz envía cada inspección en un campo payload a doPost. La app espera a que el endpoint de verificación confirme que el archivo JSON se encuentra en Drive antes de marcarla como SINCRONIZADO.
 
