@@ -536,66 +536,34 @@ function buildReportHtml_(year, month) {
   const rows = collectMonthInspections_(year, month);
 
   if (!rows.length) {
-    return '<!doctype html><html lang="es"><body>' +
-      '<h2>No hay inspecciones sincronizadas en Drive para ' +
-      escapeHtml_(month) + ' ' + escapeHtml_(year) +
-      '.</h2></body></html>';
+    return '<!doctype html><html lang="es"><body><h2>No hay inspecciones sincronizadas en Drive para ' +
+      escapeHtml_(month) + ' ' + escapeHtml_(year) + '.</h2></body></html>';
   }
 
+  // Orden estable: área, punto y fecha.
   rows.sort(function(a, b) {
-    const first =
-      String(a.zona || '') +
-      String(a.punto || '') +
-      String(a.fecha || '');
-
-    const second =
-      String(b.zona || '') +
-      String(b.punto || '') +
-      String(b.fecha || '');
-
-    return first.localeCompare(second);
+    const zoneCompare = String(a.zona || '').localeCompare(String(b.zona || ''), 'es');
+    if (zoneCompare !== 0) return zoneCompare;
+    const pointCompare = String(a.punto || '').localeCompare(String(b.punto || ''), 'es');
+    if (pointCompare !== 0) return pointCompare;
+    return new Date(a.fecha || 0).getTime() - new Date(b.fecha || 0).getTime();
   });
 
-  const zones = unique_(rows.map(function(x) {
-    return x.zona || 'SIN_ZONA';
-  }));
+  const zones = unique_(rows.map(function(x) { return x.zona || 'SIN_ZONA'; }));
+  const points = unique_(rows.map(function(x) { return (x.zona || '') + '|' + (x.punto || ''); }));
+  const incidence = rows.filter(function(x) { return String(x.resultado || '').toUpperCase() === 'CON INCIDENCIA'; }).length;
+  const pending = rows.filter(function(x) { return String(x.estado || '').toUpperCase() === 'PENDIENTE'; }).length;
+  const noInc = rows.filter(function(x) { return String(x.resultado || '').toUpperCase() === 'SIN INCIDENCIA'; }).length;
+  const photoCount = rows.reduce(function(total, x) { return total + (x.photoData || []).length; }, 0);
 
-  const points = unique_(rows.map(function(x) {
-    return (x.zona || '') + '|' + (x.punto || '');
-  }));
-
-  const incidence = rows.filter(function(x) {
-    return String(x.resultado || '').toUpperCase() ===
-      'CON INCIDENCIA';
-  }).length;
-
-  const pending = rows.filter(function(x) {
-    return String(x.estado || '').toUpperCase() ===
-      'PENDIENTE';
-  }).length;
-
-  const noInc = rows.filter(function(x) {
-    return String(x.resultado || '').toUpperCase() ===
-      'SIN INCIDENCIA';
-  }).length;
-
-  const photoCount = rows.reduce(function(total, x) {
-    return total + (x.photoData || []).length;
-  }, 0);
-
-  let html = '<!doctype html><html lang="es"><head>' +
-    '<meta charset="utf-8">' +
+  let html = '<!doctype html><html lang="es"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width,initial-scale=1">' +
-    '<title>Reporte mensual ' + escapeHtml_(month) +
-    ' ' + escapeHtml_(year) + '</title>' +
+    '<title>Reporte mensual ' + escapeHtml_(month) + ' ' + escapeHtml_(year) + '</title>' +
     '<style>' + reportCss_() + '</style></head><body>' +
-    '<header>' +
-    '<h1>REPORTE MENSUAL DE INSPECCIÓN DE INFRAESTRUCTURA</h1>' +
-    '<b>MES: ' + escapeHtml_(month) +
-    ' | AÑO: ' + escapeHtml_(year) + '</b>' +
-    '<div class="small">Generado: ' +
-    escapeHtml_(new Date().toLocaleString('es-PE')) +
-    '</div></header><main><section class="summary">' +
+    '<header><h1>REPORTE MENSUAL DE INSPECCIÓN DE INFRAESTRUCTURA</h1>' +
+    '<div class="periodo">MES: ' + escapeHtml_(month) + ' &nbsp; | &nbsp; AÑO: ' + escapeHtml_(year) + '</div>' +
+    '<div class="small">Generado: ' + escapeHtml_(new Date().toLocaleString('es-PE')) + '</div></header>' +
+    '<main><section class="summary">' +
     summaryCell_(rows.length, 'Inspecciones') +
     summaryCell_(zones.length, 'Áreas') +
     summaryCell_(points.length, 'Puntos') +
@@ -603,111 +571,109 @@ function buildReportHtml_(year, month) {
     summaryCell_(pending, 'Pendientes') +
     summaryCell_(noInc, 'Sin incidencia') +
     summaryCell_(photoCount, 'Fotografías') +
-    summaryCell_(rows.length, 'Registros') +
+    summaryCell_(rows.length, 'Registros en Drive') +
     '</section>';
 
   let lastZone = '';
-
   rows.forEach(function(item) {
     const zone = item.zona || 'SIN_ZONA';
-
     if (zone !== lastZone) {
-      html += '<h2>ÁREA / ZONA: ' +
-        escapeHtml_(zone) + '</h2>';
+      html += '<h2 class="areaTitle">ÁREA / ZONA: ' + escapeHtml_(zone) + '</h2>';
       lastZone = zone;
     }
 
     const photos = item.photoData || [];
+    const info = '<div class="itemInfo">' +
+      '<div class="data"><b>Fecha:</b> ' + escapeHtml_(formatDate_(item.fecha)) + '</div>' +
+      '<div class="data"><b>Resultado:</b> <span class="' +
+      (String(item.resultado || '').toUpperCase() === 'CON INCIDENCIA' ? 'incidence' : 'noInc') + '">' +
+      escapeHtml_(item.resultado || '') + '</span></div>' +
+      (item.estado ? '<div class="data"><b>Estado:</b> <span class="' +
+        (String(item.estado).toUpperCase() === 'PENDIENTE' ? 'pending' : 'reported') + '">' +
+        escapeHtml_(item.estado) + '</span></div>' : '') +
+      '<div class="data observation"><b>Observación:</b> ' +
+      escapeHtml_(item.observacion || 'Sin observación').replace(/\n/g, '<br>') + '</div>' +
+      '<div class="photoLabel"><b>Fotografías:</b> ' + photos.length + '</div></div>';
 
-    html += '<article class="item">' +
-      '<div class="itemInfo">' +
-      '<div class="itemTitle">PUNTO DE INSPECCIÓN: ' +
-      escapeHtml_(item.punto || 'SIN_PUNTO') +
-      '</div>' +
-      '<div class="data"><b>Fecha:</b> ' +
-      escapeHtml_(formatDate_(item.fecha)) + '</div>' +
-      '<div class="data"><b>Resultado:</b> ' +
-      escapeHtml_(item.resultado || '') + '</div>' +
-      (item.estado
-        ? '<div class="data"><b>Estado:</b> ' +
-          escapeHtml_(item.estado) + '</div>'
-        : '') +
-      '<div class="data"><b>Observación:</b> ' +
-      escapeHtml_(item.observacion || 'Sin observación') +
-      '</div>' +
-      '<div class="photoLabel"><b>Fotografías:</b> ' +
-      photos.length + '</div></div>' +
-      '<div class="photoArea">' +
-      photoRowsHtml_(photos) +
-      '</div></article>';
+    html += '<section class="inspection">' +
+      '<div class="pointTitle">PUNTO DE INSPECCIÓN: ' +
+      escapeHtml_(item.punto || 'SIN_PUNTO') + '</div>';
+
+    if (!photos.length) {
+      html += '<div class="inspectionBody noPhotos">' + info + '</div>';
+    } else {
+      html += '<div class="inspectionBody">' + info +
+        '<div class="photoPanel">' + photoGridHtml_(photos, 0) + '</div></div>';
+      // Máximo cuatro fotografías por bloque (2 columnas x 2 filas).
+      // Si hay más, se muestran en bloques adicionales compactos sin perder ninguna.
+      for (let i = 4; i < photos.length; i += 4) {
+        html += '<div class="photoContinuation"><div class="continuationLabel">FOTOGRAFÍAS ADICIONALES · ' +
+          (i + 1) + '–' + Math.min(i + 4, photos.length) + '</div>' +
+          photoGridHtml_(photos, i) + '</div>';
+      }
+    }
+    html += '</section>';
   });
 
-  return html + '</main></body></html>';
+  return html + '</main><footer>Reporte mensual de inspección de infraestructura · ' +
+    escapeHtml_(month) + ' ' + escapeHtml_(year) + '</footer></body></html>';
 }
 
 function summaryCell_(value, label) {
-  return '<div><b>' + escapeHtml_(value) +
-    '</b><span>' + escapeHtml_(label) +
-    '</span></div>';
+  return '<div class="summaryCell"><b>' + escapeHtml_(value) +
+    '</b><span>' + escapeHtml_(label) + '</span></div>';
 }
 
 /************************************************************
- * 7. INSERTAR FOTOGRAFÍAS EN EL REPORTE
+ * 7. FOTOGRAFÍAS: BLOQUES DE 2 COLUMNAS X 2 FILAS
  ************************************************************/
 
-function photoRowsHtml_(photos) {
-  let html = '';
-
-  for (let i = 0; i < photos.length; i += 2) {
-    html += '<div class="photoRow">';
-
-    html += '<div class="photoCell">' +
-      (photos[i]
-        ? '<img src="' + photos[i] +
-          '" alt="Fotografía de inspección">'
-        : '') +
-      '</div>';
-
-    html += '<div class="photoCell">' +
-      (photos[i + 1]
-        ? '<img src="' + photos[i + 1] +
-          '" alt="Fotografía de inspección">'
-        : '') +
-      '</div>';
-
-    html += '</div>';
+function photoGridHtml_(photos, start) {
+  let html = '<div class="photoGrid">';
+  const end = Math.min(start + 4, photos.length);
+  for (let i = start; i < end; i++) {
+    html += '<div class="photoCell"><img src="' + photos[i] +
+      '" alt="Fotografía ' + (i + 1) + '"><span>Foto ' + (i + 1) + '</span></div>';
   }
-
-  return html;
+  return html + '</div>';
 }
 
 /************************************************************
- * 8. ESTILOS DEL REPORTE
+ * 8. DISEÑO DEL REPORTE PDF
  ************************************************************/
 
 function reportCss_() {
-  return '@page{size:A4;margin:10mm 9mm 11mm}' +
-    'html,body{font-family:Arial,sans-serif;color:#17202a;margin:0;padding:0;font-size:9pt}' +
-    'header{text-align:center;padding:10px 14px 9px;border-bottom:2px solid #0b57d0}' +
-    'h1{font-size:16pt;margin:0 0 5px}' +
-    'h2{font-size:12pt;background:#e8eef8;padding:5px 8px;margin:9px 0 6px;page-break-after:avoid}' +
-    '.small{font-size:7.5pt;color:#555}' +
-    'main{padding:0 2px}' +
-    '.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:7px 0}' +
-    '.summary div{border:1px solid #c9cdd2;padding:4px;text-align:center}' +
-    '.summary b{display:block;font-size:11pt}' +
-    '.summary span{font-size:7pt}' +
-    '.item{display:grid;grid-template-columns:5.7cm 1fr;column-gap:5mm;border:1px solid #c9cdd2;padding:5px;margin:5px 0}' +
-    '.itemInfo{padding:1px 2px}' +
-    '.itemTitle{font-weight:bold;margin-bottom:4px;font-size:9.5pt}' +
-    '.data{font-size:8pt;margin-bottom:3px;line-height:1.3;overflow-wrap:anywhere}' +
-    '.photoLabel{margin-top:4px;font-size:8pt}' +
-    '.photoArea{min-width:0}' +
-    '.photoRow{display:grid;grid-template-columns:6cm 6cm;column-gap:3mm;margin-bottom:2mm;page-break-inside:avoid}' +
-    '.photoCell{width:6cm;height:4cm;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid #ddd;background:#fff}' +
-    '.photoCell img{width:6cm;height:4cm;object-fit:contain;display:block}' +
-    '@media print{.photoRow{page-break-inside:avoid}}' +
-    '@media(max-width:700px){.summary{grid-template-columns:repeat(2,1fr)}.item{grid-template-columns:1fr}}';
+  return '@page{size:A4;margin:9mm 9mm 10mm}' +
+    'html,body{font-family:Arial,Helvetica,sans-serif;color:#243447;margin:0;padding:0;font-size:8.5pt}' +
+    'header{text-align:center;padding:3px 8px 8px;border-bottom:2px solid #142D4E;margin-bottom:7px}' +
+    'h1{font-size:15pt;letter-spacing:.2px;color:#142D4E;margin:0 0 4px;font-weight:700}' +
+    '.periodo{font-size:9pt;font-weight:bold;color:#34495e;margin-bottom:2px}' +
+    '.small{font-size:7pt;color:#687786}' +
+    'main{padding:0}' +
+    '.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin:6px 0 9px}' +
+    '.summaryCell{border:1px solid #aebbc7;padding:4px 3px;text-align:center;background:#f5f7fa}' +
+    '.summaryCell b{display:block;font-size:11pt;color:#142D4E;line-height:1.15}' +
+    '.summaryCell span{display:block;font-size:6.8pt;text-transform:uppercase;color:#526575;margin-top:2px}' +
+    '.areaTitle{font-size:10pt;line-height:1.25;color:#fff;background:#142D4E;padding:7px 9px;margin:9px 0 5px;page-break-after:avoid;break-after:avoid;border-radius:2px}' +
+    '.inspection{border:1px solid #c4ccd4;margin:0 0 7px;page-break-inside:auto;break-inside:auto}' +
+    '.pointTitle{background:#607D8B;color:#fff;font-size:8.7pt;font-weight:bold;padding:5px 8px;line-height:1.2;page-break-after:avoid;break-after:avoid}' +
+    '.inspectionBody{display:grid;grid-template-columns:5.4cm 1fr;gap:5px;padding:5px;align-items:start}' +
+    '.inspectionBody.noPhotos{grid-template-columns:1fr}' +
+    '.itemInfo{min-width:0;padding:1px 3px}' +
+    '.data{font-size:7.5pt;margin:0 0 3px;line-height:1.28;overflow-wrap:anywhere}' +
+    '.observation{white-space:normal}' +
+    '.incidence{color:#b42318;font-weight:bold}.noInc{color:#167044;font-weight:bold}' +
+    '.pending{color:#a15c00;font-weight:bold}.reported{color:#167044;font-weight:bold}' +
+    '.photoLabel{font-size:7.2pt;margin-top:4px;color:#526575}' +
+    '.photoPanel{min-width:0;background:#f1f4f7;padding:4px}' +
+    '.photoGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;page-break-inside:avoid;break-inside:avoid}' +
+    '.photoCell{position:relative;min-width:0;height:3.45cm;background:#fff;border:1px solid #d4dbe2;display:flex;align-items:center;justify-content:center;overflow:hidden}' +
+    '.photoCell img{display:block;width:100%;height:100%;object-fit:contain}' +
+    '.photoCell span{position:absolute;right:3px;bottom:2px;background:rgba(20,45,78,.78);color:#fff;font-size:5.5pt;padding:1px 3px}' +
+    '.photoContinuation{margin:0 5px 6px 5px;padding:4px;background:#f1f4f7;border:1px solid #d4dbe2;page-break-inside:avoid;break-inside:avoid}' +
+    '.continuationLabel{font-size:6.5pt;color:#526575;font-weight:bold;margin:0 0 3px}' +
+    'footer{font-size:6.5pt;color:#82909c;text-align:center;border-top:1px solid #d8dee4;margin-top:8px;padding-top:4px}' +
+    '@media print{.inspection,.photoContinuation{orphans:2;widows:2}.photoGrid{page-break-inside:avoid;break-inside:avoid}}';
 }
 
 /************************************************************
