@@ -1,12 +1,11 @@
 /************************************************************
- * INSPECCIONES INFRAESTRUCTURA 2
- * Backend de Google Apps Script independiente
- * Autorizar/publicar desde: kcorrea@aliexperu.com.pe
- * Version: 1.0
+ * INSPECCIONES DE INFRAESTRUCTURA
+ * Backend para Google Apps Script
+ * Version: 2.1
  ************************************************************/
 
-const ROOT_FOLDER_NAME = 'INSPECCIONES_INFRAESTRUCTURA_2';
-const REPORTS_FOLDER_NAME = 'REPORTES_MENSUALES_2';
+const ROOT_FOLDER_NAME = 'INSPECCIONES_INFRAESTRUCTURA';
+const REPORTS_FOLDER_NAME = 'REPORTES_MENSUALES';
 const MAX_PHOTOS_PER_INSPECTION = 12;
 
 /************************************************************
@@ -114,8 +113,8 @@ function doGet(e) {
   // Comprobación general del servicio.
   return json_({
     ok: true,
-    service: 'INSPECCIONES_INFRAESTRUCTURA_2',
-    version: '1.0'
+    service: 'INSPECCIONES_INFRAESTRUCTURA',
+    version: '2.1'
   });
 }
 
@@ -125,12 +124,6 @@ function doGet(e) {
 
 function doPost(e) {
   try {
-    console.log('doPost recibido; payload en formulario=' +
-      Boolean(e && e.parameter && e.parameter.payload) +
-      '; postData presente=' +
-      Boolean(e && e.postData && e.postData.contents) +
-      '; tipo=' +
-      String(e && e.postData && e.postData.type || 'no indicado'));
     const data = parsePostData_(e);
 
     if (!data || typeof data !== 'object' ||
@@ -805,18 +798,18 @@ function collectInspectionFiles_(folder, rows) {
  ************************************************************/
 
 function fileExistsInFolderTree_(folder, fileName) {
-  if (folder.getFilesByName(fileName).hasNext()) {
-    return true;
-  }
+  // Buscar por nombre en Drive evita recorrer una por una todas
+  // las carpetas de años, meses, días e inspecciones.
+  // El ID INS-... es único y el archivo JSON solo se crea al
+  // finalizar el guardado de las fotografías.
+  const safeName = String(fileName || '').replace(/'/g, "\\'");
+  const matches = DriveApp.searchFiles(
+    "title = '" + safeName + "' and trashed = false"
+  );
 
-  const subfolders = folder.getFolders();
-
-  while (subfolders.hasNext()) {
-    if (
-      fileExistsInFolderTree_(subfolders.next(), fileName)
-    ) {
-      return true;
-    }
+  while (matches.hasNext()) {
+    const file = matches.next();
+    if (file.getName() === fileName) return true;
   }
 
   return false;
@@ -884,16 +877,4 @@ function callbackOrJson_(obj, prefix) {
   }
 
   return json_(obj);
-}
-
-/**
- * Ejecutar manualmente una sola vez desde el editor de Apps Script.
- * Crea las carpetas de la nueva aplicación y solicita autorización de Drive.
- * No lee, mueve ni elimina archivos de la aplicación anterior.
- */
-function autorizarDriveInspecciones2() {
-  const root = getOrCreateFolder_(ROOT_FOLDER_NAME);
-  getOrCreateFolder_(REPORTS_FOLDER_NAME, root);
-  Logger.log('Autorización de Drive completada. Carpeta: ' + root.getUrl());
-  return root.getUrl();
 }
