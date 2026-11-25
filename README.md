@@ -9,4 +9,4 @@ Aplicación web progresiva para registrar inspecciones por área y punto, adjunt
 
 La aplicación usa un almacenamiento local independiente de la aplicación anterior. No borra ni transfiere automáticamente las inspecciones guardadas en el otro proyecto.
 
-Antes de utilizarla para inspecciones reales, confirma una sincronización completa y comprueba que el registro y las fotografías aparezcan en la carpeta `INSPECCIONES_INFRAESTRUCTURA_2` de Google Drive.
+Antes de utilizarla para inspecciones reales, confirma una sincronización completa y comprueba que los registros y fotografías aparezcan en `INSPECCIONES_INFRAESTRUCTURA_2/INSPECCIONES_DIARIAS`. Los reportes PDF se guardan en `INSPECCIONES_INFRAESTRUCTURA_2/REPORTES_MENSUALES_2`.
